@@ -1,12 +1,15 @@
 "use strict";
 
-function toDot(modules) {
+function toDot(modules, options) {
 	console.log("digraph G {");
 	console.log("edge [dir=back]")
-	modules.forEach(m => {
+
+  const root = `${process.cwd()}/${options.root ? options.root : ''}`
+
+  modules.forEach(m => {
 		m.deps.forEach(dep => {
-			console.log(`"${dep}" -> "${m.id}"`);
-		});
+      console.log(`"${dep.replace(root, '')}" -> "${m.id.replace(root, '')}"`);
+    });
 	});
 	console.log("}");
 }
@@ -39,7 +42,7 @@ module.exports = function plugin(options = {}) {
 	return {
 		generateBundle(bundleOptions, bundle, isWrite) {
 			let ids = [];
-			for (const moduleId of this.moduleIds) { 
+			for (const moduleId of this.moduleIds) {
 				if (!exclude(moduleId)) { ids.push(moduleId); }
 			}
 
@@ -56,7 +59,9 @@ module.exports = function plugin(options = {}) {
 				modules.push(m);
 			});
 			if (options.prune) { prune(modules); }
-			toDot(modules);
+      toDot(modules, {
+        root: options.root
+      });
 		}
 	}
 }
